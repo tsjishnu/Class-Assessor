@@ -1,0 +1,12 @@
+streamlit>=1.40
+faster-whisper>=1.0
+fastembed>=0.4
+spacy>=3.7
+opencv-python-headless>=4.10,<5
+numpy>=1.26
+scipy>=1.11
+scikit-learn>=1.4
+pandas>=2.0
+requests>=2.31
+gdown>=5.2
+imageio-ffmpeg>=0.5

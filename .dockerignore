@@ -1,0 +1,14 @@
+.venv/
+.cache/
+.git/
+.env
+__pycache__/
+*.pyc
+*.mp4
+*.mov
+*.mkv
+*.webm
+*.wav
+*.vtt
+class recordings*/
+tests/

@@ -1,0 +1,5 @@
+# Optional: local Hugging Face decision model (hf-nli provider / claim verifier). Not needed for the default setup.
+torch
+transformers>=4.40
+sentencepiece
+protobuf

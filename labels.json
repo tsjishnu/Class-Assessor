@@ -1,0 +1,15 @@
+{
+  "_comment": "Ground truth from the reviewer's feedbacks.pdf. 'Weak' and 'Known quality issues' both map to Poor (see requirements.md Q3). Paths are relative to the dataset folder (kept outside this repo).",
+  "classes": [
+    {"id": "B491", "path": "excellent/B491 Beginner Part  - 2026-06-29.mp4", "tier": "Excellent", "folder": "excellent"},
+    {"id": "B472", "path": "excellent/B472 intermediate Part  - 2026-08-24.mp4", "tier": "Excellent", "folder": "excellent"},
+    {"id": "B552", "path": "good/B552 Beginner Part  - 2026-09-02.mp4", "tier": "Good", "folder": "good"},
+    {"id": "B435g", "path": "good/B435 intermediate Part  - 2026-07-25.mp4", "tier": "Good", "folder": "good"},
+    {"id": "B516", "path": "average/B516 Beginner Part  - 2026-09-03.mp4", "tier": "Average", "folder": "average"},
+    {"id": "B435a", "path": "average/B435 Intermediate Part  - 2026-08-28.mp4", "tier": "Average", "folder": "average"},
+    {"id": "B558", "path": "weak/B558 Beginner part - 2026-09-05.mp4", "tier": "Poor", "folder": "weak"},
+    {"id": "B482", "path": "weak/B482 Intermediate Part  - 2026-09-02.mp4", "tier": "Poor", "folder": "weak"},
+    {"id": "B392", "path": "quality issue/B392 Beginner Part  - 2026-09-02.mp4", "tier": "Poor", "folder": "quality issue"},
+    {"id": "B441", "path": "quality issue/B441 Beginner Part  - 2026-08-26.mp4", "tier": "Poor", "folder": "quality issue"}
+  ]
+}
