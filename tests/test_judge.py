@@ -107,3 +107,32 @@ def test_json_parsing_is_tolerant():
 def test_deidentify_masks_person_names():
     out, names = privacy.deidentify(["Hello Gautam, how was your day? Gautam did well."])
     assert "Gautam" in names and "Gautam" not in out[0]
+
+
+SAMPLE = [
+    "Hello Gautam, how was your day?",
+    "Priya, can you tell me the best move?",
+    "Okay Midhansh, your turn now.",
+    "Very good Aarav! Aarav played well today.",
+    "I am from Kochi and my mother Reshma will call you on 98765 43210.",
+    "Send the homework to teacher@example.com before Monday.",
+    "Mayuri ma'am said bye to everyone.",
+]
+
+
+@pytest.mark.skipif(not privacy.available(), reason="spaCy model not installed")
+def test_deidentification_masks_unfamiliar_names_places_and_contacts():
+    out, names = privacy.deidentify(SAMPLE)
+    joined = " ".join(out)
+    for secret in ("Gautam", "Priya", "Midhansh", "Aarav", "Kochi", "Reshma", "Mayuri", "98765", "43210", "teacher@example.com"):
+        assert secret not in joined, f"{secret} leaked"
+    assert "Hello" in out[0] and "Okay" in out[2], "capitalised common words must survive so the judge can still see greetings"
+    assert "how was your day" in out[0]
+
+
+@pytest.mark.skipif(not privacy.available(), reason="spaCy model not installed")
+def test_frequent_lowercase_words_are_not_treated_as_names():
+    texts = ["Move the bishop to e4.", "The bishop is protected.", "Now the Bishop attacks.", "A bishop and a knight.", "Bishop takes pawn.", "Well done Aarav."]
+    names = privacy.collect_names(texts)
+    assert "Bishop" not in names and "bishop" not in names
+    assert "Aarav" in names

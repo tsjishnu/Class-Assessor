@@ -141,10 +141,29 @@ def label(feats: dict, segments: list[dict], provider: llm.Provider, masker, say
 
 # ----------------------------------------------------------------------------------------------- checking
 
-def clean_events(results: list[dict], segments: list[dict]) -> tuple[list[dict], dict]:
-    """Keep only well-formed events whose quote really appears in the transcript (timestamp corrected to the true one)."""
+def clean_events(results: list[dict], segments: list[dict], masker=None) -> tuple[list[dict], dict]:
+    """Keep only well-formed events whose quote really appears in the transcript (timestamp corrected to the true one).
+    When the model saw MASKED text (cloud providers), quotes are matched against the masked text but the evidence shown is the original line."""
     by_id = {s["id"]: s for s in segments}
     all_segs = [x for s in segments for x in s["segs"]]
+    _masked: dict[int, object] = {}
+
+    def find(quote, t, seglist):
+        if masker is None:
+            return judge.verify_quote(quote, t, seglist)
+        from dataclasses import replace
+
+        view = []
+        for s in seglist:
+            if id(s) not in _masked:
+                _masked[id(s)] = replace(s, text=masker(s.text))
+            view.append(_masked[id(s)])
+        v = judge.verify_quote(quote, t, view)
+        if v is None:
+            return None
+        orig = next((s for s in seglist if abs(s.start - v[0]) < 1e-6), None)
+        return (v[0], orig.text if orig else v[1])
+
     events, seg_meta = [], {}
     dropped = {"unknown_type": 0, "quote_not_found": 0, "duplicate": 0}
     seen = set()
@@ -161,9 +180,9 @@ def clean_events(results: list[dict], segments: list[dict]) -> tuple[list[dict],
             if not isinstance(e, dict) or e.get("type") not in TYPES:
                 dropped["unknown_type"] += 1
                 continue
-            v = judge.verify_quote(str(e.get("quote") or ""), parse_t(e.get("t")), sg["segs"] or all_segs)
+            v = find(str(e.get("quote") or ""), parse_t(e.get("t")), sg["segs"] or all_segs)
             if v is None:
-                v = judge.verify_quote(str(e.get("quote") or ""), parse_t(e.get("t")), all_segs)
+                v = find(str(e.get("quote") or ""), parse_t(e.get("t")), all_segs)
             if v is None:
                 dropped["quote_not_found"] += 1
                 continue
@@ -368,7 +387,7 @@ def judge_moves(feats: dict, segs: list, provider: llm.Provider, progress: Optio
     with perf.stage("moves_label", tm, segments=len(segments)):
         raw, lab = label(feats, segments, provider, masker, say)
     with perf.stage("moves_clean", tm):
-        events, info = clean_events(raw, segments)
+        events, info = clean_events(raw, segments, masker)
     log.info("moves: %d segments labelled, %d events kept, dropped=%s", len(raw), len(events), info["dropped"])
 
     min_p = float(os.environ.get("VERIFY_MIN_P", "0.0"))   # 0 = verifier scores are recorded but never used to drop events

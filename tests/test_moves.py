@@ -203,3 +203,13 @@ def test_speech_model_can_be_released_for_low_memory_hosts():
     speech._model = object()
     speech.unload()
     assert speech._model is None
+
+
+def test_quotes_are_verified_against_masked_text_but_original_line_is_shown():
+    """Cloud models see masked text, so their quotes contain [name]; evidence shown must still be the original line."""
+    sg = moves.build_segments(SEGS, WINDOWS)
+    mask = lambda t: t.replace("Aarav", "[name]")  # noqa: E731
+    raw = [{"id": 1, "activity": "discussion", "energy": "high", "note": "n", "moves": {"rapport_checkin": ["How was your day today, [name]?"]}}]
+    events, info = moves.clean_events(raw, sg, mask)
+    assert len(events) == 1 and info["dropped"]["quote_not_found"] == 0
+    assert "Aarav" in events[0]["text"], "the report shows the real (local) line, not the masked one"
