@@ -1,13 +1,3 @@
----
-title: Class Quality Assessor
-emoji: ♟️
-colorFrom: gray
-colorTo: green
-sdk: docker
-app_port: 7860
-pinned: false
----
-
 # Class Quality Assessor
 
 Upload an online class recording (or paste a link). The app grades it **Poor / Average / Good / Excellent** and explains
@@ -62,14 +52,34 @@ Command line: `python scripts/assess_one.py path/to/video.mp4`.
 
 Logs go to stderr and `.cache/assessor.log` with per-stage timings; the report's "How this assessment was produced" panel shows the same.
 
-## Deploy on Hugging Face Spaces (free)
+## Deploy for free
 
-1. Create a Space at huggingface.co/new-space → **SDK: Docker**, hardware **CPU basic (free)**.
-2. Push this repo to the Space's git remote (the `Dockerfile` and the front matter above are all it needs).
-3. Space → **Settings → Variables and secrets**:
-   * secrets: `GEMINI_API_KEY`, `APP_ACCESS_CODE`
-   * variables: `LLM_PROVIDER=gemini`, `ALLOW_EXTERNAL_LLM=1`, `GEMINI_MODELS=<comma-separated models>`
-4. Wait for the build (it downloads the models into the image), then open the Space. Free Spaces sleep after inactivity: open it once shortly before anyone tests it.
+Hugging Face now charges for new Docker/Gradio Spaces, so the options are:
+
+**1. Streamlit Community Cloud (free, no card; deploys from this GitHub repo).** share.streamlit.io → *New app* → this repo, branch `main`, main file `app.py`,
+Advanced settings → Python 3.12. It installs `requirements.txt` (+ `packages.txt` for ffmpeg). Under *Secrets* paste:
+
+```toml
+GEMINI_API_KEY = "..."
+ALLOW_EXTERNAL_LLM = "1"
+LLM_PROVIDER = "gemini"
+GEMINI_MODELS = "gemini-3.8-flash,gemini-3.7-flash,gemini-3.5-flash,gemini-3-flash-preview,gemini-3.5-flash-lite,gemini-3.1-flash-lite"
+APP_ACCESS_CODE = "choose-a-passphrase"
+WHISPER_MODEL = "base"      # smaller/faster; use "small" if the host has enough memory
+LOW_MEMORY = "1"            # frees the speech model before the video stage (peak memory = max of stages, not the sum)
+```
+
+The free tier has little RAM (reported 1-2.7 GB) and apps sleep when idle. If the app is killed for memory, use option 2.
+
+**2. Any container host (Google Cloud Run free tier, an Oracle Cloud Always Free VM, your own machine).** The included `Dockerfile` bakes the models in and listens on port 7860:
+
+```bash
+docker build -t class-assessor . && docker run -p 7860:7860 --env-file .env class-assessor
+```
+
+**3. This PC + a free tunnel** (`ngrok http 8501` or `cloudflared tunnel --url http://localhost:8501`): zero setup, but the PC must stay on while the app is being tested.
+
+On any public deployment set `APP_ACCESS_CODE`, and remember uploads pass through the host: confirm that is acceptable for the recordings.
 
 ## Evaluation (10 labelled sample classes; reviewer's `feedbacks.pdf` is the ground truth)
 

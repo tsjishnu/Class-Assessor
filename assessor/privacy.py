@@ -16,7 +16,13 @@ def _load():
     if _nlp is None:
         import spacy
 
-        _nlp = spacy.load("en_core_web_sm", disable=["lemmatizer", "parser"])
+        try:
+            _nlp = spacy.load("en_core_web_sm", disable=["lemmatizer", "parser"])
+        except OSError:  # hosts that only install requirements.txt (e.g. Streamlit Community Cloud): download once
+            from spacy.cli import download
+
+            download("en_core_web_sm")
+            _nlp = spacy.load("en_core_web_sm", disable=["lemmatizer", "parser"])
     return _nlp
 
 

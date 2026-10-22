@@ -20,6 +20,15 @@ CHESS_PROMPT = "A chess class for children on Zoom. Words: chess, pawn, rook, kn
 _model = None
 
 
+def unload() -> None:
+    """Release the speech model (and its memory). It is reloaded on next use."""
+    global _model
+    _model = None
+    import gc
+
+    gc.collect()
+
+
 def get_model():
     global _model
     if _model is None:

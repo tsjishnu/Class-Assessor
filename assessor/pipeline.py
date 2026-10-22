@@ -95,6 +95,13 @@ def extract(path: str, progress: Optional[Callable[[str], None]] = None, use_cac
                         notes.append(f"Speaker separation failed: {e}")
             feats["diarization"] = diar
             feats["segments"] = [s.to_dict() for s in segs]
+            if os.environ.get("LOW_MEMORY", "0") == "1":  # small hosts (about 1-3 GB): free Whisper + audio before CLIP loads
+                perf.log.info("LOW_MEMORY: releasing speech model and audio buffers")
+                speech.unload()
+                del samples
+                import gc
+
+                gc.collect()
 
         feats["transcript_stats"] = transcript.stats(segments_of(feats), feats["windows"])
 

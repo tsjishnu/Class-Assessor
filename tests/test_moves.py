@@ -196,3 +196,10 @@ def test_unusable_transcript_never_gets_high_confidence():
     bad = {"usable": False, "reason": "only 3 speech segments were recognised", "dimensions": {}, "tech_issues": None, "provider": "x", "model": "m", "local": True}
     rep = rubric.assess(FEATS, bad)
     assert rep["confidence"] == "Low" and any("NOT assessed" in f and "only 3 speech segments" in f for f in rep["flags"])
+
+
+def test_speech_model_can_be_released_for_low_memory_hosts():
+    from assessor import speech
+    speech._model = object()
+    speech.unload()
+    assert speech._model is None
